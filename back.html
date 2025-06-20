@@ -85,7 +85,7 @@
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Čiara v strede
+      // Deliaca čiara
       ctx.strokeStyle = "#999";
       ctx.beginPath();
       ctx.moveTo(canvas.width / 2, 20);
@@ -100,18 +100,20 @@
         ctx.fillText(line, 30, 50 + i * 22);
       });
 
-      // Adresa vpravo
+      // 🆕 Adresa vpravo – posunutá nižšie
       const addrX = canvas.width / 2 + 20;
-      ctx.fillText(name, addrX, 60);
-      ctx.fillText(street, addrX, 90);
-      ctx.fillText(city, addrX, 120);
-      ctx.fillText(country, addrX, 150);
+      let y = 130; // posunuté z pôvodných 60–150
 
-      // Uložiť do localStorage
+      ctx.fillText(name, addrX, y);
+      ctx.fillText(street, addrX, y + 30);
+      ctx.fillText(city, addrX, y + 60);
+      ctx.fillText(country, addrX, y + 90);
+
+      // Uloženie do localStorage
       const backDataUrl = canvas.toDataURL("image/png");
       localStorage.setItem("postcardBack", backDataUrl);
 
-      // Presmerovať
+      // Presmerovanie
       window.location.href = "sumary.html";
     }
   </script>
