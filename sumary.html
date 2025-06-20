@@ -22,6 +22,11 @@
       max-width: 320px;
       border: 4px solid #ccc;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+    .rotated {
+      transform: rotate(-90deg);
+      transform-origin: center center;
     }
     .option-box {
       display: inline-block;
@@ -94,18 +99,30 @@
     const frontData = localStorage.getItem("postcardImage");
     const backData = localStorage.getItem("postcardBack");
     const orientation = localStorage.getItem("postcardOrientation") || "landscape";
+    const isPortrait = orientation === "portrait";
 
-    if (frontData) document.getElementById("frontPreview").src = frontData;
+    const frontPreview = document.getElementById("frontPreview");
+    const backPreview = document.getElementById("backPreview");
+
+    if (frontData) {
+      frontPreview.src = frontData;
+      if (isPortrait) frontPreview.classList.add("rotated");
+    }
+
     if (backData) {
-      document.getElementById("backPreview").src = backData;
+      backPreview.src = backData;
     } else {
-      document.getElementById("backPreview").alt = "Zadná strana nie je dostupná.";
+      backPreview.alt = "Zadná strana nie je dostupná.";
     }
 
     async function shareOnFacebook() {
       if (!frontData) return alert("Chýba predná strana.");
 
-      const blob = await (await fetch(frontData)).blob();
+      const img = await loadImage(frontData);
+      const processed = isPortrait ? rotateImageLeft(img) : img;
+
+      const blob = await fetch(processed.toDataURL("image/png")).then(res => res.blob());
+
       const formData = new FormData();
       formData.append("file", blob);
       formData.append("upload_preset", UPLOAD_PRESET);
@@ -133,11 +150,13 @@
       }
     }
 
-    function downloadPNG() {
+    async function downloadPNG() {
       if (!frontData) return alert("Chýba predná strana.");
+      const img = await loadImage(frontData);
+      const finalImage = isPortrait ? rotateImageLeft(img) : img;
       const link = document.createElement("a");
       link.download = "pohladnica.png";
-      link.href = frontData;
+      link.href = finalImage.toDataURL("image/png");
       link.click();
     }
 
@@ -146,7 +165,6 @@
 
       const { jsPDF } = window.jspdf;
 
-      const isPortrait = orientation === "portrait";
       const width = isPortrait ? 105 : 148;
       const height = isPortrait ? 148 : 105;
 
@@ -168,7 +186,7 @@
     }
 
     function loadImage(dataUrl) {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         const img = new Image();
         img.onload = () => resolve(img);
         img.src = dataUrl;
@@ -181,7 +199,7 @@
       canvas.height = image.width;
       const ctx = canvas.getContext("2d");
       ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(-Math.PI / 2); // otočenie doľava o 90°
+      ctx.rotate(-Math.PI / 2); // 90° vľavo
       ctx.drawImage(image, -image.width / 2, -image.height / 2);
       return canvas;
     }
