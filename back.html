@@ -2,77 +2,118 @@
 <html lang="sk">
 <head>
   <meta charset="UTF-8">
-  <title>Pohľadnica Turiec – Zadná strana</title>
+  <title>Pohľadnica – Zadná strana</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f2f2f2;
+      background: #eef2f3;
       padding: 2em;
       text-align: center;
     }
-    .container {
+    .form-container {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 2em;
-      flex-wrap: wrap;
-      margin-top: 2em;
-    }
-    .field {
-      background: white;
-      padding: 1em;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 320px;
+      margin-bottom: 2em;
     }
     textarea, input {
       width: 100%;
       padding: 0.5em;
-      margin-top: 0.5em;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+      font-size: 16px;
+    }
+    .box {
+      background: white;
+      padding: 1em;
+      border-radius: 10px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      width: 300px;
     }
     h2 {
       margin-top: 0;
     }
-    #nextButton {
+    button {
       margin-top: 2em;
       padding: 0.8em 1.5em;
       font-size: 16px;
       background: #2277cc;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
+    }
+    canvas {
+      display: none;
     }
   </style>
 </head>
 <body>
 
   <h1>Zadná strana pohľadnice</h1>
-  <p>✍️ Vyplň text a adresu, ktoré sa zobrazia na zadnej strane pohľadnice:</p>
+  <p>✍️ Vyplň text a adresu, ktoré sa zobrazia na zadnej strane:</p>
 
-  <div class="container">
-    <div class="field">
+  <div class="form-container">
+    <div class="box">
       <h2>💬 Tvoja správa</h2>
-      <textarea rows="12" placeholder="Napíš svoj pozdrav, odkaz alebo zážitok..."></textarea>
+      <textarea id="message" rows="10" placeholder="Napíš svoj pozdrav..."></textarea>
     </div>
-    <div class="field">
-      <h2>📬 Adresa príjemcu</h2>
-      <input type="text" placeholder="Meno a priezvisko">
-      <input type="text" placeholder="Ulica a číslo">
-      <input type="text" placeholder="PSČ a mesto">
-      <input type="text" placeholder="Štát">
+    <div class="box">
+      <h2>📮 Adresa príjemcu</h2>
+      <input type="text" id="name" placeholder="Meno a priezvisko">
+      <input type="text" id="street" placeholder="Ulica a číslo">
+      <input type="text" id="city" placeholder="PSČ a mesto">
+      <input type="text" id="country" placeholder="Štát">
     </div>
   </div>
 
-  <button id="nextButton">Pokračovať ➡</button>
+  <button onclick="generateBack()">Pokračovať ➡</button>
+
+  <canvas id="backCanvas" width="740" height="525"></canvas>
 
   <script>
-    document.getElementById('nextButton').addEventListener('click', () => {
+    function generateBack() {
+      const message = document.getElementById("message").value;
+      const name = document.getElementById("name").value;
+      const street = document.getElementById("street").value;
+      const city = document.getElementById("city").value;
+      const country = document.getElementById("country").value;
+
+      const canvas = document.getElementById("backCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Pozadie
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Čiara v strede
+      ctx.strokeStyle = "#999";
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2, 20);
+      ctx.lineTo(canvas.width / 2, canvas.height - 20);
+      ctx.stroke();
+
+      // Správa vľavo
+      ctx.fillStyle = "#000";
+      ctx.font = "16px sans-serif";
+      const msgLines = message.split('\n');
+      msgLines.forEach((line, i) => {
+        ctx.fillText(line, 30, 50 + i * 22);
+      });
+
+      // Adresa vpravo
+      const addrX = canvas.width / 2 + 20;
+      ctx.fillText(name, addrX, 60);
+      ctx.fillText(street, addrX, 90);
+      ctx.fillText(city, addrX, 120);
+      ctx.fillText(country, addrX, 150);
+
+      // Uložiť do localStorage
+      const backDataUrl = canvas.toDataURL("image/png");
+      localStorage.setItem("postcardBack", backDataUrl);
+
+      // Presmerovať
       window.location.href = "sumary.html";
-    });
+    }
   </script>
 
 </body>
