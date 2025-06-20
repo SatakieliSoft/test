@@ -1,0 +1,26 @@
+body {
+  font-family: sans-serif;
+  background: #eef2f3;
+  padding: 2em;
+  text-align: center;
+}
+canvas {
+  border: 5px solid white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  margin-top: 1em;
+  cursor: grab;
+}
+input[type="file"] {
+  margin-bottom: 1em;
+}
+#nextButton {
+  margin-top: 1.5em;
+  padding: 0.6em 1.2em;
+  font-size: 16px;
+  background: #2277cc;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: none;
+}

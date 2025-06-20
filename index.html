@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <title>Pohľadnica Turiec – Predná strana</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #eef2f3;
+      padding: 2em;
+      text-align: center;
+    }
+    canvas {
+      border: 5px solid white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      margin-top: 1em;
+      cursor: grab;
+      max-width: 100%;
+    }
+    input, button, select {
+      margin: 1em 0.5em;
+      padding: 0.6em 1em;
+      font-size: 16px;
+    }
+    #nextButton {
+      display: none;
+      background: #2277cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Predná strana pohľadnice</h1>
+  <p>📸 Nahraj fotku, ktorú chceš vložiť do rámika:</p>
+  <input type="file" id="photoInput" accept="image/*">
+  <select id="orientation">
+    <option value="landscape" selected>🖼️ Na šírku</option>
+    <option value="portrait">📱 Na výšku</option>
+  </select>
+  <br>
+  <canvas id="postcardCanvas" width="740" height="525"></canvas>
+  <br>
+  <button id="nextButton">Pokračovať ➡</button>
+
+  <script>
+    const canvas = document.getElementById("postcardCanvas");
+    const ctx = canvas.getContext("2d");
+    const input = document.getElementById("photoInput");
+    const orientationSelect = document.getElementById("orientation");
+    const nextButton = document.getElementById("nextButton");
+
+    const logo = new Image();
+    logo.src = "img/turiec_logo.png";
+
+    let img = null;
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+    let startX, startY;
+
+    const dimensions = {
+      landscape: { width: 740, height: 525 },
+      portrait: { width: 525, height: 740 }
+    };
+
+    let imageLoaded = false;
+    let logoLoaded = false;
+
+    function tryDraw() {
+      if (imageLoaded && logoLoaded) {
+        drawCanvas();
+        nextButton.style.display = "inline-block";
+      }
+    }
+
+    function updateCanvasSize() {
+      const orientation = orientationSelect.value;
+      canvas.width = dimensions[orientation].width;
+      canvas.height = dimensions[orientation].height;
+    }
+
+    function drawCanvas() {
+      if (!img) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const drawWidth = img.width * scale;
+      const drawHeight = img.height * scale;
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+      const logoWidth = 100;
+      const logoHeight = logo.height * (logoWidth / logo.width);
+      ctx.drawImage(
+        logo,
+        canvas.width - logoWidth - 10,
+        canvas.height - logoHeight - 10,
+        logoWidth,
+        logoHeight
+      );
+
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = "white";
+      ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL("image/png");
+      localStorage.setItem("postcardImage", dataUrl);
+    }
+
+    input.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          img = new Image();
+          img.onload = function () {
+            imageLoaded = true;
+            updateCanvasSize();
+            offsetX = 0;
+            offsetY = 0;
+            scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+            tryDraw();
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    orientationSelect.addEventListener("change", () => {
+      if (!img) return;
+      updateCanvasSize();
+      scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+      tryDraw();
+    });
+
+    logo.onload = () => {
+      logoLoaded = true;
+      tryDraw();
+    };
+
+    canvas.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      startX = e.offsetX;
+      startY = e.offsetY;
+      canvas.style.cursor = "grabbing";
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (!isDragging || !img) return;
+      offsetX += e.offsetX - startX;
+      offsetY += e.offsetY - startY;
+      startX = e.offsetX;
+      startY = e.offsetY;
+      tryDraw();
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      isDragging = false;
+      canvas.style.cursor = "grab";
+    });
+
+    canvas.addEventListener("wheel", (e) => {
+      if (!img) return;
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 1.05 : 0.95;
+      scale *= delta;
+      tryDraw();
+    });
+
+    nextButton.addEventListener("click", () => {
+      window.location.href = "back.html";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <title>Pohľadnica Turiec – Zhrnutie</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f4f8;
+      padding: 2em;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 0.5em;
+    }
+    .option-box {
+      background: white;
+      display: inline-block;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 1em;
+      width: 300px;
+      vertical-align: top;
+    }
+    .option-box h2 {
+      margin-top: 0;
+    }
+    .option-box button, #goBackButton {
+      margin-top: 1em;
+      padding: 0.6em 1.2em;
+      font-size: 16px;
+      background: #2277cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5em;
+      margin-top: 2em;
+    }
+    #preview {
+      margin-top: 1em;
+      max-width: 90%;
+      border: 4px solid #ddd;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✅ Tvoja pohľadnica je pripravená!</h1>
+  <p>Vyber, čo s ňou chceš urobiť:</p>
+
+  <div id="previewContainer"></div>
+
+  <div class="container" id="optionsContainer" style="display:none;">
+    <div class="option-box">
+      <h2>🔗 Zdieľať na Facebooku</h2>
+      <p>Zdieľaj prednú stranu pohľadnice ako obrázok.</p>
+      <button onclick="shareOnFacebook()">Zdieľať</button>
+    </div>
+
+    <div class="option-box">
+      <h2>⬇ Stiahnuť pohľadnicu</h2>
+      <p>Stiahni si pohľadnicu ako obrázok alebo PDF.</p>
+      <button onclick="downloadPostcard()">Stiahnuť</button>
+    </div>
+
+    <div class="option-box">
+      <h2>💳 Poslať pohľadnicu</h2>
+      <p>Simuluj odoslanie pohľadnice s platbou.</p>
+      <button onclick="simulatePayment()">Odoslať</button>
+    </div>
+  </div>
+
+  <div id="errorContainer" style="display:none;">
+    <p style="color: red; font-weight: bold;">❌ Obrázok pohľadnice nie je dostupný.</p>
+    <p>Skús to znova z predchádzajúcej obrazovky.</p>
+    <button id="goBackButton" onclick="goBack()">← Späť na úpravu</button>
+  </div>
+
+  <script>
+    const CLOUD_NAME = "dqtev9r7m";
+    const UPLOAD_PRESET = "unsigned_postcards";
+
+    const dataUrl = localStorage.getItem("postcardImage");
+
+    if (dataUrl) {
+      const img = new Image();
+      img.src = dataUrl;
+      img.id = "preview";
+      document.getElementById("previewContainer").appendChild(img);
+      document.getElementById("optionsContainer").style.display = "flex";
+    } else {
+      document.getElementById("errorContainer").style.display = "block";
+    }
+
+    async function shareOnFacebook() {
+      if (!dataUrl) {
+        alert("Obrázok pohľadnice nie je dostupný.");
+        return;
+      }
+
+      const blob = await (await fetch(dataUrl)).blob();
+      const formData = new FormData();
+      formData.append("file", blob);
+      formData.append("upload_preset", UPLOAD_PRESET);
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: formData
+      });
+
+      const json = await response.json();
+
+      if (json.secure_url) {
+        const shareUrl = encodeURIComponent(json.secure_url);
+        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+        window.open(fbUrl, "_blank", "width=600,height=400");
+      } else {
+        alert("Nepodarilo sa nahrať obrázok na Cloudinary.");
+        console.error(json);
+      }
+    }
+
+    function downloadPostcard() {
+      if (!dataUrl) return alert("Obrázok nie je pripravený.");
+      const link = document.createElement("a");
+      link.download = "pohladnica.png";
+      link.href = dataUrl;
+      link.click();
+    }
+
+    function simulatePayment() {
+      alert("Simulácia platby kartou – zatiaľ demo.");
+    }
+
+    function goBack() {
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>

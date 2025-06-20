@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <title>Pohľadnica Turiec – Zadná strana</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2f2f2;
+      padding: 2em;
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 2em;
+      flex-wrap: wrap;
+      margin-top: 2em;
+    }
+    .field {
+      background: white;
+      padding: 1em;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 0.5em;
+      margin-top: 0.5em;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    #nextButton {
+      margin-top: 2em;
+      padding: 0.8em 1.5em;
+      font-size: 16px;
+      background: #2277cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Zadná strana pohľadnice</h1>
+  <p>✍️ Vyplň text a adresu, ktoré sa zobrazia na zadnej strane pohľadnice:</p>
+
+  <div class="container">
+    <div class="field">
+      <h2>💬 Tvoja správa</h2>
+      <textarea rows="12" placeholder="Napíš svoj pozdrav, odkaz alebo zážitok..."></textarea>
+    </div>
+    <div class="field">
+      <h2>📬 Adresa príjemcu</h2>
+      <input type="text" placeholder="Meno a priezvisko">
+      <input type="text" placeholder="Ulica a číslo">
+      <input type="text" placeholder="PSČ a mesto">
+      <input type="text" placeholder="Štát">
+    </div>
+  </div>
+
+  <button id="nextButton">Pokračovať ➡</button>
+
+  <script>
+    document.getElementById('nextButton').addEventListener('click', () => {
+      window.location.href = "sumary.html";
+    });
+  </script>
+
+</body>
+</html>
