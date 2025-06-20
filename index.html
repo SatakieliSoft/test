@@ -108,6 +108,9 @@
 
       const dataUrl = canvas.toDataURL("image/png");
       localStorage.setItem("postcardImage", dataUrl);
+
+      // 🆕 uloženie orientácie
+      localStorage.setItem("postcardOrientation", orientationSelect.value);
     }
 
     input.addEventListener("change", (e) => {
@@ -175,5 +178,6 @@
       window.location.href = "back.html";
     });
   </script>
+
 </body>
 </html>
