@@ -159,8 +159,7 @@
       const front = await loadImage(frontData);
       const back = await loadImage(backData);
 
-      // ⚠️ otoč prednú stranu, ak je portrait
-      const processedFront = isPortrait ? rotateImage(front) : front;
+      const processedFront = isPortrait ? rotateImageLeft(front) : front;
 
       pdf.addImage(processedFront, "PNG", 0, 0, width, height);
       pdf.addPage();
@@ -176,13 +175,13 @@
       });
     }
 
-    function rotateImage(image) {
+    function rotateImageLeft(image) {
       const canvas = document.createElement("canvas");
       canvas.width = image.height;
       canvas.height = image.width;
       const ctx = canvas.getContext("2d");
       ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(Math.PI / 2); // 90°
+      ctx.rotate(-Math.PI / 2); // otočenie doľava o 90°
       ctx.drawImage(image, -image.width / 2, -image.height / 2);
       return canvas;
     }
