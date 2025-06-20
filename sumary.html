@@ -2,7 +2,8 @@
 <html lang="sk">
 <head>
   <meta charset="UTF-8">
-  <title>Pohľadnica Turiec – Zhrnutie</title>
+  <title>Zhrnutie pohľadnice</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -13,22 +14,30 @@
     h1 {
       margin-bottom: 0.5em;
     }
+    .preview-container {
+      display: flex;
+      justify-content: center;
+      gap: 2em;
+      flex-wrap: wrap;
+      margin-bottom: 2em;
+    }
+    .preview-box img {
+      max-width: 320px;
+      border: 4px solid #ccc;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
     .option-box {
-      background: white;
       display: inline-block;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background: white;
+      padding: 1.5em;
       margin: 1em;
-      width: 300px;
-      vertical-align: top;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      width: 280px;
     }
-    .option-box h2 {
-      margin-top: 0;
-    }
-    .option-box button, #goBackButton {
+    .option-box button {
       margin-top: 1em;
-      padding: 0.6em 1.2em;
+      padding: 0.5em 1em;
       font-size: 16px;
       background: #2277cc;
       color: white;
@@ -36,77 +45,51 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1.5em;
-      margin-top: 2em;
-    }
-    #preview {
-      margin-top: 1em;
-      max-width: 90%;
-      border: 4px solid #ddd;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-    }
   </style>
 </head>
 <body>
 
-  <h1>✅ Tvoja pohľadnica je pripravená!</h1>
-  <p>Vyber, čo s ňou chceš urobiť:</p>
-
-  <div id="previewContainer"></div>
-
-  <div class="container" id="optionsContainer" style="display:none;">
-    <div class="option-box">
-      <h2>🔗 Zdieľať na Facebooku</h2>
-      <p>Zdieľaj prednú stranu pohľadnice ako obrázok.</p>
-      <button onclick="shareOnFacebook()">Zdieľať</button>
+  <h1>✅ Pohľadnica pripravená!</h1>
+  <div class="preview-container">
+    <div class="preview-box">
+      <h3>Predná strana</h3>
+      <img id="frontPreview" src="">
     </div>
-
-    <div class="option-box">
-      <h2>⬇ Stiahnuť pohľadnicu</h2>
-      <p>Stiahni si pohľadnicu ako obrázok alebo PDF.</p>
-      <button onclick="downloadPostcard()">Stiahnuť</button>
-    </div>
-
-    <div class="option-box">
-      <h2>💳 Poslať pohľadnicu</h2>
-      <p>Simuluj odoslanie pohľadnice s platbou.</p>
-      <button onclick="simulatePayment()">Odoslať</button>
+    <div class="preview-box">
+      <h3>Zadná strana</h3>
+      <img id="backPreview" src="">
     </div>
   </div>
 
-  <div id="errorContainer" style="display:none;">
-    <p style="color: red; font-weight: bold;">❌ Obrázok pohľadnice nie je dostupný.</p>
-    <p>Skús to znova z predchádzajúcej obrazovky.</p>
-    <button id="goBackButton" onclick="goBack()">← Späť na úpravu</button>
+  <div class="option-box">
+    <h2>🔗 Zdieľať na Facebooku</h2>
+    <button onclick="shareOnFacebook()">Zdieľať prednú stranu</button>
+  </div>
+
+  <div class="option-box">
+    <h2>⬇ Stiahnuť pohľadnicu</h2>
+    <button onclick="downloadOptions()">Stiahnuť (PNG / PDF)</button>
+  </div>
+
+  <div class="option-box">
+    <h2>💳 Simulovať odoslanie</h2>
+    <button onclick="simulateSend()">Simulovať odoslanie</button>
   </div>
 
   <script>
     const CLOUD_NAME = "dqtev9r7m";
     const UPLOAD_PRESET = "unsigned_postcards";
 
-    const dataUrl = localStorage.getItem("postcardImage");
+    const frontData = localStorage.getItem("postcardImage");
+    const backData = localStorage.getItem("postcardBack");
 
-    if (dataUrl) {
-      const img = new Image();
-      img.src = dataUrl;
-      img.id = "preview";
-      document.getElementById("previewContainer").appendChild(img);
-      document.getElementById("optionsContainer").style.display = "flex";
-    } else {
-      document.getElementById("errorContainer").style.display = "block";
-    }
+    if (frontData) document.getElementById("frontPreview").src = frontData;
+    if (backData) document.getElementById("backPreview").src = backData;
 
     async function shareOnFacebook() {
-      if (!dataUrl) {
-        alert("Obrázok pohľadnice nie je dostupný.");
-        return;
-      }
+      if (!frontData) return alert("Chýba predná strana.");
 
-      const blob = await (await fetch(dataUrl)).blob();
+      const blob = await (await fetch(frontData)).blob();
       const formData = new FormData();
       formData.append("file", blob);
       formData.append("upload_preset", UPLOAD_PRESET);
@@ -117,33 +100,65 @@
       });
 
       const json = await response.json();
-
       if (json.secure_url) {
-        const shareUrl = encodeURIComponent(json.secure_url);
-        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(json.secure_url)}`;
         window.open(fbUrl, "_blank", "width=600,height=400");
       } else {
-        alert("Nepodarilo sa nahrať obrázok na Cloudinary.");
-        console.error(json);
+        alert("Zdieľanie zlyhalo.");
       }
     }
 
-    function downloadPostcard() {
-      if (!dataUrl) return alert("Obrázok nie je pripravený.");
+    function downloadOptions() {
+      const choice = prompt("Chceš stiahnuť PNG (len predná) alebo PDF (obe strany)? Napíš: png alebo pdf");
+      if (!choice) return;
+
+      if (choice.toLowerCase() === "png") {
+        downloadPNG();
+      } else if (choice.toLowerCase() === "pdf") {
+        downloadPDF();
+      } else {
+        alert("Neplatná voľba.");
+      }
+    }
+
+    function downloadPNG() {
       const link = document.createElement("a");
       link.download = "pohladnica.png";
-      link.href = dataUrl;
+      link.href = frontData;
       link.click();
     }
 
-    function simulatePayment() {
-      alert("Simulácia platby kartou – zatiaľ demo.");
+    async function downloadPDF() {
+      if (!frontData || !backData) return alert("Obe strany musia byť dostupné!");
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: [148, 105] // A6 na šírku
+      });
+
+      const front = await loadImage(frontData);
+      const back = await loadImage(backData);
+
+      pdf.addImage(front, "PNG", 0, 0, 148, 105);
+      pdf.addPage();
+      pdf.addImage(back, "PNG", 0, 0, 148, 105);
+
+      pdf.save("pohladnica.pdf");
     }
 
-    function goBack() {
-      window.location.href = "index.html";
+    function loadImage(dataUrl) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = dataUrl;
+      });
+    }
+
+    function simulateSend() {
+      alert("Simulácia odoslania – zatiaľ demo režim.");
     }
   </script>
-
 </body>
 </html>
