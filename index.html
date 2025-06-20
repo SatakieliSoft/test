@@ -16,6 +16,7 @@
       margin-top: 1em;
       cursor: grab;
       max-width: 100%;
+      touch-action: none;
     }
     input, button {
       margin: 1em 0.5em;
@@ -60,7 +61,7 @@
     let offsetY = 0;
     let isDragging = false;
     let startX, startY;
-    let rotation = 0; // v stupňoch (0, 90, 180, 270)
+    let rotation = 0;
 
     function drawCanvas() {
       if (!img) return;
@@ -74,17 +75,14 @@
       const drawWidth = img.width * scale;
       const drawHeight = img.height * scale;
       ctx.drawImage(img, -drawWidth / 2 + offsetX, -drawHeight / 2 + offsetY, drawWidth, drawHeight);
-
       ctx.restore();
 
-      // Logo
       if (logo.complete) {
         const logoWidth = 100;
         const logoHeight = logo.height * (logoWidth / logo.width);
         ctx.drawImage(logo, canvas.width - logoWidth - 10, canvas.height - logoHeight - 10, logoWidth, logoHeight);
       }
 
-      // Rámik
       ctx.lineWidth = 10;
       ctx.strokeStyle = "white";
       ctx.strokeRect(0, 0, canvas.width, canvas.height);
@@ -117,6 +115,7 @@
       }
     });
 
+    // 🖱️ Mouse dragging
     canvas.addEventListener("mousedown", (e) => {
       isDragging = true;
       startX = e.offsetX;
@@ -138,6 +137,37 @@
       canvas.style.cursor = "grab";
     });
 
+    // 🖐️ Touch dragging
+    canvas.addEventListener("touchstart", (e) => {
+      if (!img) return;
+      if (e.touches.length === 1) {
+        isDragging = true;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        startX = touch.clientX - rect.left;
+        startY = touch.clientY - rect.top;
+      }
+    });
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (!isDragging || !img) return;
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      offsetX += x - startX;
+      offsetY += y - startY;
+      startX = x;
+      startY = y;
+      drawCanvas();
+      e.preventDefault();
+    });
+
+    canvas.addEventListener("touchend", () => {
+      isDragging = false;
+    });
+
+    // 🔍 Mouse zoom
     canvas.addEventListener("wheel", (e) => {
       if (!img) return;
       e.preventDefault();
@@ -154,6 +184,5 @@
       if (img) drawCanvas();
     };
   </script>
-
 </body>
 </html>
