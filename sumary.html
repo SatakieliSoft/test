@@ -93,6 +93,7 @@
 
     const frontData = localStorage.getItem("postcardImage");
     const backData = localStorage.getItem("postcardBack");
+    const orientation = localStorage.getItem("postcardOrientation") || "landscape";
 
     if (frontData) document.getElementById("frontPreview").src = frontData;
     if (backData) {
@@ -144,18 +145,23 @@
       if (!frontData || !backData) return alert("Obe strany musia byť dostupné!");
 
       const { jsPDF } = window.jspdf;
+
+      const isPortrait = orientation === "portrait";
+      const width = isPortrait ? 105 : 148;
+      const height = isPortrait ? 148 : 105;
+
       const pdf = new jsPDF({
-        orientation: "landscape",
+        orientation: isPortrait ? "portrait" : "landscape",
         unit: "mm",
-        format: [148, 105] // A6
+        format: [width, height]
       });
 
       const front = await loadImage(frontData);
       const back = await loadImage(backData);
 
-      pdf.addImage(front, "PNG", 0, 0, 148, 105);
+      pdf.addImage(front, "PNG", 0, 0, width, height);
       pdf.addPage();
-      pdf.addImage(back, "PNG", 0, 0, 148, 105);
+      pdf.addImage(back, "PNG", 0, 0, width, height);
       pdf.save("pohladnica.pdf");
     }
 
