@@ -115,13 +115,30 @@
       backPreview.alt = "Zadná strana nie je dostupná.";
     }
 
+    function downloadBasedOnChoice() {
+      const format = document.querySelector('input[name="format"]:checked').value;
+      if (format === "png") {
+        downloadPNG();
+      } else {
+        downloadPDF();
+      }
+    }
+
+    async function downloadPNG() {
+      if (!frontData) return alert("Chýba predná strana.");
+      const img = await loadImage(frontData);
+      const finalCanvas = isPortrait ? rotateImageLeft(img) : imageToCanvas(img);
+      const link = document.createElement("a");
+      link.download = "pohladnica.png";
+      link.href = finalCanvas.toDataURL("image/png");
+      link.click();
+    }
+
     async function shareOnFacebook() {
       if (!frontData) return alert("Chýba predná strana.");
-
       const img = await loadImage(frontData);
-      const processed = isPortrait ? rotateImageLeft(img) : img;
-
-      const blob = await fetch(processed.toDataURL("image/png")).then(res => res.blob());
+      const finalCanvas = isPortrait ? rotateImageLeft(img) : imageToCanvas(img);
+      const blob = await (await fetch(finalCanvas.toDataURL("image/png"))).blob();
 
       const formData = new FormData();
       formData.append("file", blob);
@@ -141,28 +158,8 @@
       }
     }
 
-    function downloadBasedOnChoice() {
-      const format = document.querySelector('input[name="format"]:checked').value;
-      if (format === "png") {
-        downloadPNG();
-      } else {
-        downloadPDF();
-      }
-    }
-
-    async function downloadPNG() {
-      if (!frontData) return alert("Chýba predná strana.");
-      const img = await loadImage(frontData);
-      const finalImage = isPortrait ? rotateImageLeft(img) : img;
-      const link = document.createElement("a");
-      link.download = "pohladnica.png";
-      link.href = finalImage.toDataURL("image/png");
-      link.click();
-    }
-
     async function downloadPDF() {
       if (!frontData || !backData) return alert("Obe strany musia byť dostupné!");
-
       const { jsPDF } = window.jspdf;
 
       const width = isPortrait ? 105 : 148;
@@ -177,7 +174,9 @@
       const front = await loadImage(frontData);
       const back = await loadImage(backData);
 
-      const processedFront = isPortrait ? rotateImageLeft(front) : front;
+      const processedFront = isPortrait
+        ? rotateImageLeft(front).toDataURL("image/png")
+        : front;
 
       pdf.addImage(processedFront, "PNG", 0, 0, width, height);
       pdf.addPage();
@@ -193,13 +192,22 @@
       });
     }
 
+    function imageToCanvas(img) {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      return canvas;
+    }
+
     function rotateImageLeft(image) {
       const canvas = document.createElement("canvas");
       canvas.width = image.height;
       canvas.height = image.width;
       const ctx = canvas.getContext("2d");
       ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(-Math.PI / 2); // 90° vľavo
+      ctx.rotate(-Math.PI / 2);
       ctx.drawImage(image, -image.width / 2, -image.height / 2);
       return canvas;
     }
